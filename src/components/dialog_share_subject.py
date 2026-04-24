@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 
 import segno
@@ -6,7 +7,10 @@ import io
 
 @st.dialog("Share Class Link")
 def share_subject_dialog(subject_name, subject_code):
-    app_domain = "https://snapclass-main.streamlit.app"
+    app_domain = os.environ.get(
+        "SNAPCLASS_APP_DOMAIN",
+        "https://share.streamlit.io/parshuram-prajapati-aiml/Snap-class/main",
+    )
     join_url = f"{app_domain}/?join-code={subject_code}"
 
     st.header("Scan to Join")
