@@ -109,7 +109,7 @@ def student_screen():
         photo_source = st.camera_input("Position your face clearly in the frame")
 
     if photo_source:
-        img = np.array(Image.open(photo_source))
+        img = np.array(Image.open(photo_source).convert('RGB'))
         with st.spinner('Verifying Identity...'):
             detected, all_ids, num_faces = predict_attendance(img)
 
@@ -118,21 +118,25 @@ def student_screen():
             elif num_faces > 1:
                 st.warning('Multiple people detected. Only one person can login at a time.')
             else:
+                matched_student = None
                 if detected:
-                    student_id = list(detected.keys())[0]
+                    detected_id = int(list(detected.keys())[0])
                     all_students = get_all_students()
-                    student = next((s for s in all_students if s['student_id'] == student_id), None)
+                    matched_student = next(
+                        (s for s in all_students if int(s['student_id']) == detected_id),
+                        None
+                    )
 
-                    if student:
-                        st.session_state.is_logged_in = True
-                        st.session_state.user_role = 'student'
-                        st.session_state.student_data = student
-                        st.success(f"Access Granted: {student['name']}")
-                        time.sleep(1)
-                        st.rerun()
+                if matched_student:
+                    st.session_state.is_logged_in = True
+                    st.session_state.user_role = 'student'
+                    st.session_state.student_data = matched_student
+                    st.success(f"Access Granted: {matched_student['name']}")
+                    time.sleep(1)
+                    st.rerun()
                 else:
                     st.info("Face not recognized. Let's create your account!")
-                    
+
                     # --- REGISTRATION BOX ---
                     with st.container(border=True):
                         st.markdown("<h3>New Student Registration</h3>", unsafe_allow_html=True)
@@ -142,24 +146,34 @@ def student_screen():
                         audio_data = st.file_uploader('Upload a short audio clip', type=['wav', 'mp3', 'm4a'])
 
                         if st.button('✨ Create My Profile', type='primary', use_container_width=True):
-                            if new_name:
+                            if not new_name or not new_name.strip():
+                                st.warning('Name is required.')
+                            else:
                                 with st.spinner('Encrypting biometrics...'):
-                                    img = np.array(Image.open(photo_source))
                                     encodings = get_face_embeddings(img)
-                                    if encodings:
+                                    if not encodings:
+                                        st.error('Facial scan failed. Please adjust lighting.')
+                                    elif len(encodings) > 1:
+                                        st.warning('Please use a single face for registration.')
+                                    else:
                                         face_emb = encodings[0].tolist()
                                         voice_emb = get_voice_embedding(audio_data.read()) if audio_data else None
 
-                                        response_data = create_student(new_name, face_embedding=face_emb, voice_embedding=voice_emb)
+                                        response_data = create_student(
+                                            new_name,
+                                            face_embedding=face_emb,
+                                            voice_embedding=voice_emb,
+                                        )
                                         if response_data:
+                                            created_student = response_data[0]
                                             train_classifier()
-                                            st.session_state.student_data = response_data[0]
+                                            st.session_state.is_logged_in = True
+                                            st.session_state.user_role = 'student'
+                                            st.session_state.student_data = created_student
                                             st.success("Account Created Successfully!")
                                             time.sleep(1)
                                             st.rerun()
-                                    else:
-                                        st.error('Facial scan failed. Please adjust lighting.')
-                            else:
-                                st.warning('Name is required.')
-        
+                                        else:
+                                            st.error('Unable to create student profile. Please try again.')
+
     footer_dashboard()

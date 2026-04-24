@@ -38,7 +38,19 @@ def get_all_students():
     return response.data
 
 def create_student(new_name, face_embedding=None, voice_embedding=None):
-    data = {'name': new_name, 'face_embedding':face_embedding, "voice_embedding": voice_embedding}
+    if not new_name or not str(new_name).strip():
+        return None
+
+    def _normalize_embedding(embedding):
+        if embedding is None:
+            return None
+        return embedding.tolist() if hasattr(embedding, 'tolist') else embedding
+
+    data = {
+        'name': str(new_name).strip(),
+        'face_embedding': _normalize_embedding(face_embedding),
+        'voice_embedding': _normalize_embedding(voice_embedding)
+    }
     response = supabase.table('students').insert(data).execute()
     return response.data
 
@@ -67,8 +79,20 @@ def get_teacher_subjects(teacher_id):
 
 
 def  enroll_student_to_subject(student_id, subject_id):
-    data = {'student_id': student_id, "subject_id": subject_id}
-    response= supabase.table('subject_students').insert(data).execute()
+    if student_id is None or subject_id is None:
+        return None
+
+    existing = supabase.table('subject_students')\
+        .select('student_id')\
+        .eq('student_id', student_id)\
+        .eq('subject_id', subject_id)\
+        .execute()
+
+    if existing.data:
+        return existing.data
+
+    data = {'student_id': student_id, 'subject_id': subject_id}
+    response = supabase.table('subject_students').insert(data).execute()
     return response.data
 
 
