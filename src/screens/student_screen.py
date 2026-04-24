@@ -139,7 +139,7 @@ def student_screen():
                         new_name = st.text_input("Full Name", placeholder='Enter your legal name')
 
                         st.markdown("<h4>Voice Enrollment (Optional)</h4>", unsafe_allow_html=True)
-                        audio_data = st.audio_input('Record: "I am present for Snap Class"')
+                        audio_data = st.file_uploader('Upload a short audio clip', type=['wav', 'mp3', 'm4a'])
 
                         if st.button('✨ Create My Profile', type='primary', use_container_width=True):
                             if new_name:

@@ -201,6 +201,19 @@ def style_background_dashboard():
                 border: 1px solid #2D3748 !important;
                 border-radius: 12px !important;
             }
+
+            /* Hide duplicate password visibility icons */
+            input[type="password"] ~ button,
+            .stTextInput button[aria-label*="show"],
+            .stTextInput button[aria-label*="hide"],
+            div[class*="stPasswordInput"] button {
+                display: none !important;
+            }
+
+            /* Show only the native password eye icon */
+            input[type="password"]::-webkit-textfield-decoration-container {
+                display: flex !important;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -251,6 +264,148 @@ def style_base_layout():
             div.stButton > button:hover {
                 transform: translateY(-2px) !important;
                 box-shadow: 0 8px 20px rgba(88,101,242,0.4) !important;
+            }
+
+            /* Fix overlapping dataframe headers and overflow in Streamlit tables */
+            /* Hide AG Grid tooltips and popup menus, but keep Streamlit dialogs visible */
+            .ag-tooltip,
+            .ag-popup,
+            .ag-popup-child,
+            .ag-menu,
+            [role="tooltip"],
+            div[class*="tooltip"],
+            div[class*="popup"],
+            div[class*="menu"],
+            div[class*="dropdown"],
+            div[aria-describedby],
+            .stToast,
+            [class*="Popper"],
+            [data-testid*="tooltip"],
+            [data-testid*="popup"] {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                opacity: 0 !important;
+            }
+
+            /* Hide absolute positioned overlays ONLY within dataframes */
+            div[data-testid="stDataFrameContainer"] div[style*="position: absolute"],
+            div[data-testid="stDataFrameContainer"] div[style*="position:absolute"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            /* Ensure grid container has proper overflow handling */
+            div[role="grid"],
+            div[class*="ag-root"],
+            div[class*="stDataFrame"] {
+                overflow: auto !important;
+                position: relative !important;
+                z-index: 1 !important;
+            }
+
+            /* Fix column headers - proper spacing and no overflow */
+            div[role="columnheader"],
+            [role="columnheader"] {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+                overflow: hidden !important;
+                padding: 12px 8px !important;
+                min-height: 50px !important;
+                z-index: 2 !important;
+            }
+
+            /* Fix grid cells - wrap text and prevent overflow */
+            div[role="gridcell"],
+            [role="gridcell"] {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                padding: 12px 8px !important;
+                min-height: 45px !important;
+                max-width: 200px !important;
+                z-index: 1 !important;
+            }
+
+            /* Ensure AG Grid cell content wraps properly */
+            .ag-cell-value,
+            .ag-header-cell-label {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+                display: block !important;
+                line-height: 1.4 !important;
+            }
+
+            /* Nuclear suppression of ALL header menu elements */
+            .ag-header-cell-menu-button {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+
+            /* Hide the container that holds the menu button */
+            .ag-header-cell-menu-button-container,
+            div[class*="menu-button"] {
+                display: none !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+
+            /* Suppress the menu icon SVG and any graphics */
+            .ag-menu-icon,
+            .ag-icon-menu,
+            svg[class*="menu"],
+            svg[class*="ellipsis"],
+            [class*="filter-menu-button"],
+            [class*="ag-filter"] {
+                display: none !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+
+            /* Hide filter and sort icons completely */
+            .ag-icon-filter,
+            .ag-icon-sort,
+            [aria-label*="Sort"],
+            [aria-label*="Filter"] {
+                display: none !important;
+            }
+
+            /* Make sure no overflow escapes from header cells */
+            .ag-header-cell,
+            div[role="columnheader"] {
+                overflow: hidden !important;
+                max-width: 100% !important;
+            }
+
+            /* Make dataframe container take full width with proper spacing */
+            div[data-testid="stDataFrameContainer"] {
+                margin-bottom: 2rem !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                z-index: 1 !important;
+            }
+
+            /* Remove any floating elements */
+            [class*="ag-floating"] {
+                display: none !important;
+            }
+
+            /* Hide Streamlit column menu specifically */
+            button[aria-label*="column"],
+            button[aria-label*="sort"],
+            button[aria-label*="filter"] {
+                display: none !important;
             }
         </style>
     """, unsafe_allow_html=True)

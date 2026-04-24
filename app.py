@@ -26,7 +26,13 @@ def main():
             home_screen()
 
 
-    join_code = st.query_params.get('join-code')
+    join_code_value = st.query_params.get('join-code')
+    join_code = None
+    if isinstance(join_code_value, list) and join_code_value:
+        join_code = join_code_value[0]
+    elif isinstance(join_code_value, str):
+        join_code = join_code_value
+
     if join_code:
         if st.session_state.login_type != 'student':
             st.session_state.login_type = 'student'

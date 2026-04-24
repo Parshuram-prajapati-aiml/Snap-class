@@ -197,11 +197,15 @@ def teacher_tab_manage_subjects():
                     name=sub['name'],
                     code=sub['subject_code'],
                     section=sub['section'],
-                    stats=stats,
-                    footer_callback=lambda s_name=sub['name'], s_code=sub['subject_code']: 
-                        st.button(f"Share Code: {s_code}", key=f"share_{s_code}", icon=":material/share:", use_container_width=True) 
-                        and share_subject_dialog(s_name, s_code)
+                    stats=stats
                 )
+                if st.button(
+                    f"Share Code: {sub['subject_code']}",
+                    key=f"share_{sub['subject_code']}",
+                    icon=":material/share:",
+                    use_container_width=True
+                ):
+                    share_subject_dialog(sub['name'], sub['subject_code'])
     else:
         st.info("No subjects found. Create your first subject above.")
 
@@ -243,7 +247,20 @@ def teacher_tab_attendance_records():
         display_df = (summary.sort_values(by='ts_group', ascending=False)
                       [['Time', 'Subject', 'Subject Code', 'Status']])
         
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        # Use st.table() instead of st.dataframe() to avoid interactive menus
+        st.table(display_df)
+
+        # Add download button for records
+        csv_text = display_df.to_csv(index=False)
+        csv_bytes = csv_text.encode('utf-8-sig')
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_bytes,
+            file_name=f"attendance_records_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        st.write("")  # Add spacing below table
 
 def teacher_screen_login():
     c1, c2 = st.columns([2, 1], vertical_alignment='center')
@@ -263,12 +280,14 @@ def teacher_screen_login():
             b1, b2 = st.columns(2)
             with b1:
                 if st.button('Login', type='primary', use_container_width=True):
-                    if teacher_login(user, pwd):
+                    teacher = teacher_login(user, pwd)
+                    if teacher:
                         st.session_state.user_role = 'teacher'
-                        st.session_state.teacher_data = teacher_login(user, pwd)
+                        st.session_state.teacher_data = teacher
                         st.session_state.is_logged_in = True
                         st.rerun()
-                    else: st.error("Error")
+                    else:
+                        st.error("Invalid username or password.")
             with b2:
                 if st.button('Register', use_container_width=True):
                     st.session_state.teacher_login_type = 'register'
@@ -292,10 +311,13 @@ def teacher_screen_register():
             p2 = st.text_input("Confirm", type='password')
             if st.button('Create Account', type='primary', use_container_width=True):
                 if p1 == p2 and u and n:
-                    create_teacher(u, p1, n)
-                    st.success("Created!")
-                    st.session_state.teacher_login_type = "login"
-                    st.rerun()
+                    if check_teacher_exists(u):
+                        st.error("Username already exists.")
+                    else:
+                        create_teacher(u, p1, n)
+                        st.success("Created!")
+                        st.session_state.teacher_login_type = "login"
+                        st.rerun()
             if st.button('Back to Login', use_container_width=True):
                 st.session_state.teacher_login_type = 'login'
                 st.rerun()
