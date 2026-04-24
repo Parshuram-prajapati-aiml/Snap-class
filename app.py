@@ -36,8 +36,8 @@ def main():
 
         if join_code:
             st.session_state['pending_join_code'] = str(join_code).strip()
-            remaining_params = {k: v for k, v in st.query_params.items() if k != 'join-code'}
-            st.experimental_set_query_params(**remaining_params)
+            st.query_params.clear()
+            st.rerun()
 
     if join_code:
         if st.session_state.login_type != 'student':
