@@ -14,6 +14,7 @@ from src.components.subject_card import subject_card
 from src.pipelines.face_pipeline import predict_attendance, get_face_embeddings, train_classifier
 from src.pipelines.voice_pipeline import get_voice_embedding
 from src.database.db import get_all_students, create_student, get_student_subjects, get_student_attendance, unenroll_student_to_subject
+from src.components.dialog_auto_enroll import auto_enroll_dialog
 
 def student_dashboard():
     student_data = st.session_state.student_data
@@ -35,6 +36,15 @@ def student_dashboard():
     st.markdown("<hr style='margin: 1.5rem 0; opacity: 0.1;'>", unsafe_allow_html=True)
 
     # --- SUBJECTS HEADER ---
+    pending_join_code = st.session_state.get('pending_join_code')
+    if pending_join_code:
+        st.info(f"Join request detected for subject code **{pending_join_code}**. After login, click below to enroll.")
+        if st.button('Join this class', use_container_width=True, key='join_with_code'):
+            auto_enroll_dialog(pending_join_code)
+            st.session_state.pop('pending_join_code', None)
+            st.rerun()
+        st.markdown("<hr style='margin: 1rem 0; opacity: 0.1;'>", unsafe_allow_html=True)
+
     c1, c2 = st.columns([2, 1], vertical_alignment='center')
     with c1:
         st.markdown("<h2 style='text-align: left; margin:0;'>Your Courses</h2>", unsafe_allow_html=True)
@@ -103,6 +113,10 @@ def student_screen():
             st.rerun()
 
     st.markdown("<h2 style='text-align: center;'>FaceID Login</h2>", unsafe_allow_html=True)
+
+    pending_join_code = st.session_state.get('pending_join_code')
+    if pending_join_code:
+        st.info(f"Detected a join request for subject code **{pending_join_code}**. Please log in or register to complete enrollment.")
     
     # Modern Camera Container
     with st.container(border=True):

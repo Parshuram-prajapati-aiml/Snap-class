@@ -26,17 +26,22 @@ def main():
             home_screen()
 
 
-    join_code_value = st.query_params.get('join-code')
-    join_code = None
-    if isinstance(join_code_value, list) and join_code_value:
-        join_code = join_code_value[0]
-    elif isinstance(join_code_value, str):
-        join_code = join_code_value
+    join_code = st.session_state.get('pending_join_code')
+    if join_code is None:
+        join_code_value = st.query_params.get('join-code')
+        if isinstance(join_code_value, list) and join_code_value:
+            join_code = join_code_value[0]
+        elif isinstance(join_code_value, str):
+            join_code = join_code_value
+
+        if join_code:
+            st.session_state['pending_join_code'] = str(join_code).strip()
+            remaining_params = {k: v for k, v in st.query_params.items() if k != 'join-code'}
+            st.experimental_set_query_params(**remaining_params)
 
     if join_code:
         if st.session_state.login_type != 'student':
             st.session_state.login_type = 'student'
             st.rerun()
-        if st.session_state.get('is_logged_in') and st.session_state.get('user_role') == 'student':
-            auto_enroll_dialog(join_code)
+
 main()
