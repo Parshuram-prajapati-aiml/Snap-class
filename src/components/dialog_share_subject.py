@@ -9,7 +9,7 @@ import io
 def share_subject_dialog(subject_name, subject_code):
     app_domain = os.environ.get(
         "SNAPCLASS_APP_DOMAIN",
-        "https://share.streamlit.io/parshuram-prajapati-aiml/Snap-class/main",
+        "https://snap-class.streamlit.app",
     )
     join_url = f"{app_domain}/?join-code={subject_code}"
 
