@@ -145,7 +145,7 @@ Feel free to fork and submit pull requests.
 
 **Parshuram Prajapati**
 📍 Vijayapur, India
-🌐 https://parshfolio.onrender.com
+🌐 [https://parshfolio.onrender.com](https://parshuram-portfolio-6xjk.vercel.app/)
 
 ---
 
