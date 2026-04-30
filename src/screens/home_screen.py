@@ -32,12 +32,12 @@ def home_screen():
         <div style="text-align:center; margin-top: -15px; margin-bottom: 2.5rem;">
             <h1 style="
                 font-family:'Bebas Neue',sans-serif;
-                font-size:4.5rem; line-height:0.85;
-                letter-spacing:4px; color:#FFFFFF;
-                margin:0;
+                font-size:clamp(2.5rem, 10vw, 4.5rem); line-height:0.9;
+                letter-spacing:clamp(1px, 1vw, 4px); color:#FFFFFF;
+                margin:0; word-break:break-word;
             ">
                 SNAP<br>
-                <span style="color:#C8FF00; padding-left: 30px;">CLASS</span>
+                <span style="color:#C8FF00; padding-left:clamp(8px, 3vw, 30px);">CLASS</span>
             </h1>
         </div>
     """, unsafe_allow_html=True)

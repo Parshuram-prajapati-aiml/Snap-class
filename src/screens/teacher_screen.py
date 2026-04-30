@@ -11,10 +11,11 @@ from src.database.db import check_teacher_exists, create_teacher, teacher_login,
 from src.components.dialog_create_subject import create_subject_dialog
 from src.components.dialog_share_subject import share_subject_dialog
 from src.components.dialog_add_photo import add_photos_dialog
-from src.pipelines.face_pipeline import predict_attendance
 from src.components.dialog_attendance_results import attendance_result_dialog
 from src.database.config import supabase
 from src.components.dialog_voice_attendance import voice_attendance_dialog
+# NOTE: face_pipeline is imported lazily inside teacher_tab_take_attendance()
+# to avoid loading dlib/cv2 on every page render (speeds up login page enormously)
 
 def apply_custom_styles():
     """Local styles for card-based teacher dashboard"""
@@ -91,6 +92,9 @@ def teacher_dashboard():
     footer_dashboard()
 
 def teacher_tab_take_attendance():
+    # Lazy import: only load dlib/cv2/sklearn when this tab is actually used
+    from src.pipelines.face_pipeline import predict_attendance
+
     teacher_id = st.session_state.teacher_data['teacher_id']
     
     with st.container(border=True):
@@ -274,24 +278,28 @@ def teacher_screen_login():
     with center_col:
         with st.container(border=True):
             st.header('Login')
-            user = st.text_input("Username")
-            pwd = st.text_input("Password", type='password')
-            st.write("")
-            b1, b2 = st.columns(2)
-            with b1:
-                if st.button('Login', type='primary', use_container_width=True):
-                    teacher = teacher_login(user, pwd)
-                    if teacher:
-                        st.session_state.user_role = 'teacher'
-                        st.session_state.teacher_data = teacher
-                        st.session_state.is_logged_in = True
-                        st.rerun()
-                    else:
-                        st.error("Invalid username or password.")
-            with b2:
-                if st.button('Register', use_container_width=True):
-                    st.session_state.teacher_login_type = 'register'
+            with st.form("login_form", border=False):
+                user = st.text_input("Username")
+                pwd = st.text_input("Password", type='password')
+                st.write("")
+                b1, b2 = st.columns(2)
+                with b1:
+                    submitted = st.form_submit_button('Login', type='primary', use_container_width=True)
+                with b2:
+                    register_btn = st.form_submit_button('Register', use_container_width=True)
+
+            if submitted:
+                teacher = teacher_login(user, pwd)
+                if teacher:
+                    st.session_state.user_role = 'teacher'
+                    st.session_state.teacher_data = teacher
+                    st.session_state.is_logged_in = True
                     st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+            elif register_btn:
+                st.session_state.teacher_login_type = 'register'
+                st.rerun()
 
 def teacher_screen_register():
     c1, c2 = st.columns([2, 1], vertical_alignment='center')
@@ -305,11 +313,18 @@ def teacher_screen_register():
     with center_col:
         with st.container(border=True):
             st.header('Register')
-            u = st.text_input("Username")
-            n = st.text_input("Full Name")
-            p1 = st.text_input("Password", type='password')
-            p2 = st.text_input("Confirm", type='password')
-            if st.button('Create Account', type='primary', use_container_width=True):
+            with st.form("register_form", border=False):
+                u = st.text_input("Username")
+                n = st.text_input("Full Name")
+                p1 = st.text_input("Password", type='password')
+                p2 = st.text_input("Confirm", type='password')
+                b1, b2 = st.columns(2)
+                with b1:
+                    create_btn = st.form_submit_button('Create Account', type='primary', use_container_width=True)
+                with b2:
+                    back_btn = st.form_submit_button('Back to Login', use_container_width=True)
+
+            if create_btn:
                 if p1 == p2 and u and n:
                     if check_teacher_exists(u):
                         st.error("Username already exists.")
@@ -318,6 +333,10 @@ def teacher_screen_register():
                         st.success("Created!")
                         st.session_state.teacher_login_type = "login"
                         st.rerun()
-            if st.button('Back to Login', use_container_width=True):
+                elif p1 != p2:
+                    st.error("Passwords do not match.")
+                else:
+                    st.error("Please fill in all fields.")
+            elif back_btn:
                 st.session_state.teacher_login_type = 'login'
                 st.rerun()

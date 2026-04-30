@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import time
+from audio_recorder_streamlit import audio_recorder
 
 # UI & Style Imports
 from src.ui.base_layout import style_background_dashboard, style_base_layout
@@ -11,8 +12,8 @@ from src.components.dialog_enroll import enroll_dialog
 from src.components.subject_card import subject_card
 
 # Logic & Data Imports
-from src.pipelines.face_pipeline import predict_attendance, get_face_embeddings, train_classifier
-from src.pipelines.voice_pipeline import get_voice_embedding
+# NOTE: face_pipeline & voice_pipeline are imported lazily inside functions
+# to avoid loading dlib/cv2/torch on every render (makes login instant)
 from src.database.db import get_all_students, create_student, get_student_subjects, get_student_attendance, unenroll_student_to_subject
 from src.components.dialog_auto_enroll import auto_enroll_dialog
 
@@ -125,6 +126,9 @@ def student_screen():
     if photo_source:
         img = np.array(Image.open(photo_source).convert('RGB'))
         with st.spinner('Verifying Identity...'):
+            # Lazy import: load face pipeline only when a photo is taken
+            from src.pipelines.face_pipeline import predict_attendance, get_face_embeddings, train_classifier
+            from src.pipelines.voice_pipeline import get_voice_embedding
             detected, all_ids, num_faces = predict_attendance(img)
 
             if num_faces == 0:
@@ -156,8 +160,19 @@ def student_screen():
                         st.markdown("<h3>New Student Registration</h3>", unsafe_allow_html=True)
                         new_name = st.text_input("Full Name", placeholder='Enter your legal name')
 
-                        st.markdown("<h4>Voice Enrollment (Optional)</h4>", unsafe_allow_html=True)
-                        audio_data = st.file_uploader('Upload a short audio clip', type=['wav', 'mp3', 'm4a'])
+                        st.markdown("<h4>🎙️ Voice Enrollment (Optional)</h4>", unsafe_allow_html=True)
+                        st.caption("Press the mic button, speak clearly for 3–5 seconds, then press it again to stop.")
+                        audio_data = audio_recorder(
+                            text="",
+                            recording_color="#e74c3c",
+                            neutral_color="#5865F2",
+                            icon_size="2x",
+                            pause_threshold=3.0,
+                            key="voice_enroll_recorder"
+                        )
+                        if audio_data:
+                            st.audio(audio_data, format="audio/wav")
+                            st.success("✅ Voice recorded! Submit below to save.")
 
                         if st.button('✨ Create My Profile', type='primary', use_container_width=True):
                             if not new_name or not new_name.strip():
@@ -171,7 +186,7 @@ def student_screen():
                                         st.warning('Please use a single face for registration.')
                                     else:
                                         face_emb = encodings[0].tolist()
-                                        voice_emb = get_voice_embedding(audio_data.read()) if audio_data else None
+                                        voice_emb = get_voice_embedding(audio_data) if audio_data else None
 
                                         response_data = create_student(
                                             new_name,

@@ -1,3 +1,4 @@
+import streamlit as st
 from src.database.config import supabase
 import bcrypt
 
@@ -33,7 +34,9 @@ def teacher_login(username, password):
     return None
 
 
+@st.cache_data(ttl=30)
 def get_all_students():
+    """Cached for 30s — avoids Supabase round-trip on every face recognition call."""
     response = supabase.table('students').select("*").execute()
     return response.data
 
@@ -60,7 +63,9 @@ def create_subject(subject_code, name, section, teacher_id):
     response = supabase.table("subjects").insert(data).execute()
     return response.data
 
+@st.cache_data(ttl=60)
 def get_teacher_subjects(teacher_id):
+    """Cached for 60s — avoids repeated Supabase queries on every tab click."""
     response = supabase.table('subjects').select("*, subject_students(count), attendance_logs(timestamp)").eq("teacher_id", teacher_id).execute()
     subjects = response.data
 

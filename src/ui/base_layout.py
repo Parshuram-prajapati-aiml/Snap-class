@@ -40,6 +40,8 @@ def style_background_home():
     .block-container {
         padding-top: 2rem !important;
         max-width: 900px !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
     }
 
     /* ── Typography overrides ── */
@@ -51,7 +53,7 @@ def style_background_home():
 
     h2 {
         font-family: 'Bebas Neue', sans-serif !important;
-        font-size: 2.4rem !important;
+        font-size: clamp(1.4rem, 5vw, 2.4rem) !important;
         letter-spacing: 1px !important;
         line-height: 1 !important;
         color: #FFFFFF !important;
@@ -149,6 +151,47 @@ def style_background_home():
     div[data-testid="stImage"] img {
         filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
     }
+
+    /* ── Mobile Responsive Fixes ── */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 1rem !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 12vw, 4.5rem) !important;
+            letter-spacing: 2px !important;
+        }
+
+        h2 {
+            font-size: clamp(1.2rem, 5vw, 2rem) !important;
+        }
+
+        /* Stack role cards vertically on small screens */
+        [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2))
+            [data-testid="stColumn"] {
+            padding: 1.25rem 1rem !important;
+        }
+
+        /* Reduce image sizes on mobile */
+        div[data-testid="stImage"] img {
+            max-width: 120px !important;
+            height: auto !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        h1 {
+            font-size: clamp(2rem, 14vw, 3rem) !important;
+            letter-spacing: 1px !important;
+        }
+
+        h2 {
+            font-size: clamp(1rem, 5vw, 1.6rem) !important;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -202,18 +245,7 @@ def style_background_dashboard():
                 border-radius: 12px !important;
             }
 
-            /* Hide duplicate password visibility icons */
-            input[type="password"] ~ button,
-            .stTextInput button[aria-label*="show"],
-            .stTextInput button[aria-label*="hide"],
-            div[class*="stPasswordInput"] button {
-                display: none !important;
-            }
-
-            /* Show only the native password eye icon */
-            input[type="password"]::-webkit-textfield-decoration-container {
-                display: flex !important;
-            }
+            /* Removed rule hiding Streamlit's built-in password visibility toggle */
         </style>
     """, unsafe_allow_html=True)
 
@@ -226,7 +258,12 @@ def style_base_layout():
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Outfit:wght@800&display=swap');
 
             #MainMenu, footer, header { visibility: hidden; }
-            .block-container { padding-top: 2rem !important; max-width: 1100px !important; }
+            .block-container {
+                padding-top: 2rem !important;
+                max-width: 1100px !important;
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
 
             h1 { font-family: 'Outfit', sans-serif !important; font-weight: 800 !important; }
             h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; }
@@ -244,8 +281,12 @@ def style_base_layout():
                 transition: all 0.2s ease !important;
             }
 
-            div.stButton button span[data-testid="stIconMaterial"] {
+            /* Restore Material Icons globally (prevents 'upload' text bug in uploader) */
+            span[data-testid="stIconMaterial"] {
                 font-family: 'Material Symbols Outlined' !important;
+                font-weight: normal !important;
+            }
+            div.stButton button span[data-testid="stIconMaterial"] {
                 font-size: 24px !important;
                 display: flex !important;
                 align-items: center !important;
@@ -266,20 +307,11 @@ def style_base_layout():
                 box-shadow: 0 8px 20px rgba(88,101,242,0.4) !important;
             }
 
-            /* Fix overlapping dataframe headers and overflow in Streamlit tables */
-            /* Hide AG Grid tooltips and popup menus, but keep Streamlit dialogs visible */
+            /* Hide AG Grid tooltips and popup menus ONLY — keep Streamlit alerts visible */
             .ag-tooltip,
             .ag-popup,
             .ag-popup-child,
             .ag-menu,
-            [role="tooltip"],
-            div[class*="tooltip"],
-            div[class*="popup"],
-            div[class*="menu"],
-            div[class*="dropdown"],
-            div[aria-describedby],
-            .stToast,
-            [class*="Popper"],
             [data-testid*="tooltip"],
             [data-testid*="popup"] {
                 display: none !important;
@@ -406,6 +438,92 @@ def style_base_layout():
             button[aria-label*="sort"],
             button[aria-label*="filter"] {
                 display: none !important;
+            }
+
+            /* Fix File Uploader overlapping native text */
+            [data-testid="stFileUploader"] input[type="file"],
+            [data-testid="stFileUploaderDropzone"] input[type="file"] {
+                color: transparent !important;
+                background-color: transparent !important;
+            }
+            [data-testid="stFileUploader"] input[type="file"]::-webkit-file-upload-button,
+            [data-testid="stFileUploader"] input::file-selector-button {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            /* ── Mobile Responsive Fixes ── */
+            @media (max-width: 768px) {
+                .block-container {
+                    padding-top: 1rem !important;
+                    padding-left: 0.75rem !important;
+                    padding-right: 0.75rem !important;
+                }
+
+                h1, h2 {
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                }
+
+                h2 {
+                    font-size: clamp(1.1rem, 5vw, 1.8rem) !important;
+                }
+
+                h3 {
+                    font-size: clamp(0.95rem, 4vw, 1.4rem) !important;
+                }
+
+                /* Prevent nav tabs from squishing text */
+                div.stButton > button {
+                    font-size: 11px !important;
+                    height: auto !important;
+                    min-height: 2.8rem !important;
+                    padding: 0.4rem 0.5rem !important;
+                    gap: 4px !important;
+                }
+
+                div.stButton button p {
+                    font-size: 11px !important;
+                    white-space: normal !important;
+                    word-break: break-word !important;
+                    text-align: center !important;
+                }
+
+                div.stButton button span[data-testid="stIconMaterial"] {
+                    font-size: 18px !important;
+                }
+
+                /* Attendance records table: allow horizontal scroll */
+                div[data-testid="stTable"] {
+                    overflow-x: auto !important;
+                    display: block !important;
+                }
+
+                div[data-testid="stTable"] table {
+                    min-width: 400px !important;
+                    font-size: 12px !important;
+                }
+
+                div[data-testid="stTable"] th,
+                div[data-testid="stTable"] td {
+                    padding: 6px 8px !important;
+                    white-space: normal !important;
+                    word-break: break-word !important;
+                }
+            }
+
+            @media (max-width: 480px) {
+                h2 {
+                    font-size: clamp(0.95rem, 5vw, 1.4rem) !important;
+                }
+
+                h3 {
+                    font-size: clamp(0.85rem, 4vw, 1.1rem) !important;
+                }
+
+                div.stButton > button {
+                    font-size: 10px !important;
+                }
             }
         </style>
     """, unsafe_allow_html=True)
